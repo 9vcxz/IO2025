@@ -1,6 +1,3 @@
-console.log("tests")
-
-
 let video = document.querySelector('#video_element');
 
 if (navigator.mediaDevices.getUserMedia) {
