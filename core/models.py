@@ -1,3 +1,5 @@
+# core/models.py
+
 import uuid
 from django.db import models
 from django.utils import timezone
@@ -66,3 +68,8 @@ class Employee(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+    
+
+
+class EmployeePermission(models.Model):
+    pass
