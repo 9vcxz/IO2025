@@ -1,3 +1,5 @@
+# core/admin.py
+
 from django.contrib import admin
 from .models import Employee
 from datetime import timedelta
@@ -20,6 +22,7 @@ def refresh_qr_codes(modeladmin, request, queryset):
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'photo_preview', 
         'first_name', 
         'last_name', 

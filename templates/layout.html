@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+    </title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="{% static 'js/main.js' %}" defer></script>
+</head>
+<body>
+    <main>
+      <h1>Kamera pogdglądowa weryfikacji</h1>
+      <div id="camera_container">
+        <video autoplay="true" id="video_element">
+
+        </video>
+      </div>
+
+        {% block current_employee %}
+        {% endblock %}
+    </main>
+</body>
+</html>
