@@ -9,14 +9,13 @@ from django.utils.html import format_html
 
 # Register your models here.
 
-@admin.action(description="Wygeneruj nowy kod QR i przedłuż ważność o 30 dni")
+@admin.action(description="Generate new QR codes and validate them for 30 days")
 def refresh_qr_codes(modeladmin, request, queryset):
     for employee in queryset:
         employee.qr_code = uuid.uuid4()
         employee.qr_expires_at = timezone.now() + timedelta(days=30)
         employee.save()
-
-    modeladmin.message_user(request, f"Pomyślnie odświeżono kody dla {queryset.count()} pracowników.")
+    modeladmin.message_user(request, f"Successfuly refreshed QR codes for {queryset.count()} employees.")
 
 
 @admin.register(Employee)
@@ -41,16 +40,20 @@ class EmployeeAdmin(admin.ModelAdmin):
                 '<img src="{}" style="width: 100px; height: 100px; border: 1px solid #ccc;" />',
                 obj.qr_image.url
             )
-        return "Brak QR"
-    qr_image_preview.short_description = "Kod QR"
+        return "No QR"
+    qr_image_preview.short_description = "QR code"
 
+    def photo_preview(self, obj):
+        if obj.photo:
+            return format_html('<img src="{}" style="width: 100px; height: 100px; object-fit: cover;" />', obj.photo.url)
+        return "No photo"
+    photo_preview.short_description = "Preview"
 
     def qr_code_status(self, obj):
         if obj.qr_expires_at and obj.qr_expires_at < timezone.now():
-            return "Wygasły"
-        return "Aktywny"
-    
-    qr_code_status.short_description = "Status QR"
+            return "Expired"
+        return "Active"
+    qr_code_status.short_description = "QR status"
 
     # search_fields = ('last_name', 'qr_code')
     # list_filter = ('is_active',)
