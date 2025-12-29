@@ -20,13 +20,14 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-from core.views import VerifyQRView
+from core.views import VerifyQRView, VerifyPhotoView
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),
     path('api/verify_qr', VerifyQRView.as_view()),
+    path('api/verify_photo', VerifyPhotoView.as_view()),
 ]
 
 

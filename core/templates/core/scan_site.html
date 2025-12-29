@@ -3,5 +3,7 @@
 {% block current_employee %}
         <h5 style="text-align: center;"> domyślnie puste dynamicznie zmienne po wykryciu kodu 
           QR na imie nazwisko pracownika</h5>
-        <div id="reader" width="600px"></div>
+
+        <button type="button" id="send-pic-button" onclick="sendPhoto()">Send photo</button>
+        {% comment %} <div id="reader" width="600px"></div> {% endcomment %}
 {% endblock %}

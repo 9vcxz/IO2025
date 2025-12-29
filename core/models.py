@@ -10,6 +10,8 @@ from io import BytesIO
 from django.core.files import File
 from unidecode import unidecode
 
+import face_recognition
+
 
 # Create your models here.
 class Employee(models.Model):
@@ -29,6 +31,7 @@ class Employee(models.Model):
             img_extension
         )
     photo = models.ImageField(upload_to=employee_photo_path)
+    photo_encoding = models.JSONField(null=True, blank=True, editable=False)
 
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -36,14 +39,34 @@ class Employee(models.Model):
     def save(self, *args, **kwargs):
         if not self.qr_code:
             self.qr_code = uuid.uuid4()
-        
         if not self.qr_expires_at:
             self.qr_expires_at = timezone.now() + timedelta(days=30)
-
         if self.qr_code != self.__original_qr_code or not self.qr_image:
              self.generate_and_save_qr()
 
+        is_new_photo = False
+        if self.pk:
+            old_photo = Employee.objects.get(pk=self.pk).photo
+            if old_photo != self.photo:
+                is_new_photo = True
+        else:
+            is_new_photo = True
+
         super().save(*args, **kwargs)
+
+        if is_new_photo and self.photo:
+            try:
+                image = face_recognition.load_image_file(self.photo.path)
+                encodings = face_recognition.face_encodings(image)
+
+                if encodings:
+                    self.photo_encoding = encodings[0].tolist()
+                    super().save(update_fields=['photo_encoding'])
+                else:
+                    # Do dopisania później
+                    print("nie funguje")
+            except Exception as e:
+                print(f'Encountered error during photo encoding: {e}')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
