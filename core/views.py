@@ -40,7 +40,7 @@ class VerifyQRView(APIView):
         if not employee.is_active:
             print('pracownik nie aktywny')
 
-            Log.create(employee=employee,
+            Log.objects.create(employee=employee,
                        status=False,
                        deny_reason="pracownik nieaktywny")
             
@@ -49,7 +49,7 @@ class VerifyQRView(APIView):
         if employee.qr_expires_at and employee.qr_expires_at < timezone.now():
             print('qr kod wygasl')
 
-            Log.create(employee=employee,
+            Log.objects.create(employee=employee,
             status=False,
             deny_reason="kod qr wygasl")
             return Response({"status":"error", "message":"QR code is expired"}, status=status.HTTP_403_FORBIDDEN)
@@ -89,14 +89,15 @@ class VerifyPhotoView(APIView):
         except Exception:
             return Response({"status":"error", "message":"Invalid image data"}, status=400)
 
-        # img = Image.open(img_stream)
-        # img.show()
+        img_stream.seek(0)
+        img = Image.open(img_stream)
+        img.show()
         # face_img = face_recognition.load_image_file(img_stream)
         # req_face_encodings = face_recognition.face_encodings(face_img)
+        img_stream.seek(0)
+        req_face_encodings = FaceService.encode_face_img(img_stream)
 
-        req_face_encodings = FaceService(img_stream)
-
-        if req_face_encodings == None:
+        if req_face_encodings is None:
             return Response({"status":"error", "message":"No faces found"}, status=status.HTTP_400_BAD_REQUEST)
         
         req_face_encoding = req_face_encodings[0]
@@ -104,8 +105,8 @@ class VerifyPhotoView(APIView):
         try:
             employee = Employee.objects.get(id=employee_id)
         except:
-            Log.create(employee=employee,
-            status=False,
+            Log.objects.create(employee=None,
+            access_status=False,
             deny_reason="nie znaleziono pracownika mimo poprawnego kodu qr")
 
             return Response({"status":"error", "message":f"Employee with id: {employee_id} not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -114,8 +115,8 @@ class VerifyPhotoView(APIView):
         employee_photos = employee.photos.all()
         if not employee_photos.exists():
 
-            Log.create(employee=employee,
-            status=False,
+            Log.objects.create(employee=employee,
+            access_status=False,
             deny_reason="pracownik nie posiada zdjecia")
 
             return Response({"status":"error", "message":"No photo encoding found in db"}, status=status.HTTP_404_NOT_FOUND)
@@ -133,13 +134,13 @@ class VerifyPhotoView(APIView):
         if match_found:
             employee.add_photo(img_stream)
 
-            Log.create(employee=employee,
-            status=True)
+            Log.objects.create(employee=employee,
+            access_status=True)
 
             return Response({"status":"success", "message":"Success, face match found"}, status=status.HTTP_200_OK)
         else:
-            Log.create(employee=employee,
-            status=False,
+            Log.objects.create(employee=employee,
+            access_status=False,
             deny_reason="nie znaleziono pasujacej twrzay w bazie danych")
             return Response({"status":"error", "message":"No face match found"}, status=status.HTTP_403_FORBIDDEN)
         

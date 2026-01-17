@@ -78,7 +78,8 @@ class Log(models.Model):
     deny_reason = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.event_time} - {self.employee.last_name}: {self.access_status}"
+        name = self.employee.last_name if self.employee else "Unknown"
+        return f"{self.event_time} - {name}: {self.access_status}"
 
 class EmployeePermission(models.Model):
     pass

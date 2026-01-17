@@ -18,9 +18,10 @@ class FaceService:
         )
     
     @staticmethod
-    def encode_face_img(image):
+    def encode_face_img(image_stream):
         try:
-            face_img = face_recognition.load_image_file(image)
+            image_stream.seek(0)
+            face_img = face_recognition.load_image_file(image_stream)
             encodings = face_recognition.face_encodings(face_img)
             
             if not encodings:

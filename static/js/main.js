@@ -74,7 +74,6 @@ scanner.addListener("scan", (content, _b64img) => {
             isqrScanned = true;
             feedback.textContent='QR zeskanowany pomyslnie';
 
-            scanner.stop();
             startFaceScan();
 
         }else if(status===400){
@@ -97,6 +96,15 @@ function startFaceScan() {
     console.log(`start scanowania twarzy`);
     setTimeout(() => {
         let imgData = captureImageFromVideo(); // base64
+        console.log("Długość Base64:", imgData.length);
+
+        if (imgData.length < 2000) {
+            console.error("Błąd: Przechwycony obraz wydaje się być pusty (czarny).");
+            feedback.textContent = 'Błąd kamery - spróbuj ponownie';
+            resetScanner();
+            return;
+        }
+        scanner.stop();
 
         fetch('/api/verify_photo', {
             method: 'POST',
@@ -121,9 +129,12 @@ function startFaceScan() {
 
 function captureImageFromVideo() {
     const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+
     const ctx = canvas.getContext('2d');
+    console.log(`Przechwytywanie obrazu: ${canvas.width}x${canvas.height}`);
+
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     return canvas.toDataURL('image/jpeg'); // Zwraca base64
 }
