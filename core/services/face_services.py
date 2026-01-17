@@ -16,6 +16,7 @@ class FaceService:
     def employee_photo_path(instance, filename):
         """
         funkcja zwraca na podstawie imienia i nazwiska pracownika sciezke do jego folderu ze zdjeciami
+        wykorzystywane w modelu: EmployeePhoto
         """
         ext = filename.split('.')[-1]
 
@@ -28,8 +29,12 @@ class FaceService:
 
         return f"employees_photos/{emp_id}_{first_name}_{last_name}/{new_filename}"
     
+
     @staticmethod
     def encode_face_img(image_stream):
+        """
+        generuje encoding (typ numpy.ndarray) z przeslanego zdjecia w formacie bytesIO
+        """
         try:
             image_stream.seek(0)
             face_img = face_recognition.load_image_file(image_stream)
@@ -47,25 +52,31 @@ class FaceService:
     
 
     @staticmethod
-    def compare_faces(known_face, test_face):
-        test_encoding = FaceService.encode_face_img(test_face)
+    def compare_faces(encoded_known_face, encoded_test_face):
+        """
+        porownuje twarze ze zdjec obydwa argumenty maja byc w formacie (typ numpy.ndarray)
+        zenkodowane zdjecia
+        """
         
-        print(f"typ znanej twarzy z bazy{type(known_face)},\n" 
-              f"typ porownywalnej twarzy {type(test_encoding)}")
+        print(f"typ znanej twarzy z bazy{type(encoded_known_face)},\n" 
+              f"typ porownywalnej twarzy {type(encoded_test_face)}")
         
-        if test_encoding is None:
+        if encoded_test_face or encoded_known_face is None:
             return False
         
         results = face_recognition.compare_faces(
-        [known_face],
-        test_encoding,
+        [encoded_known_face],
+        encoded_test_face,
         tolerance=0.6
         )
-
         return results[0]
     
+
     @staticmethod
     def base64_to_bytesIO(b64_string):
+        """
+        zamiana przekazanego z frontu base64 na bytesIO
+        """
         try:
             if not b64_string: return None
             if ";base64," in b64_string:
@@ -81,9 +92,14 @@ class FaceService:
             return None
 
 
-# error_msg, status_code = QRCodeService.verify_qr(qr_code_req)
     @staticmethod
     def verify_photo(employee_id, image_b64):
+        """
+        Docstring for verify_photo
+        
+        :param employee_id: Description
+        :param image_b64: Description
+        """
         from core.models import Employee, Log
 
         bytes_photo = FaceService.base64_to_bytesIO(image_b64)
@@ -96,6 +112,10 @@ class FaceService:
         img = Image.open(bytes_photo)
         img.show()
         bytes_photo.seek(0)
+
+        test_encoding = FaceService.encode_face_img(bytes_photo)
+        if not test_encoding:
+            return "Serwerowi nie udało się przetworzyć zdjęcia", 400
 
         try:
             employee = Employee.objects.get(id=employee_id)
@@ -112,7 +132,7 @@ class FaceService:
 
             Log.objects.create(employee=employee,
             access_status=False,
-            deny_reason="pracownik nie posiada zdjecia")
+            deny_reason="pracownik nie posiada zadnych zdjec")
 
             return "Brak posiadanych zdjec w bazie danych", 404
         
@@ -121,7 +141,7 @@ class FaceService:
         for photo_obj in employee_photos:
             if photo_obj.encoding:
                 known_encoding = np.array(photo_obj.encoding)
-                results = FaceService.compare_faces(known_encoding, bytes_photo)
+                results = FaceService.compare_faces(known_encoding, test_encoding)
                 if results:
                     match_found = True
                     break

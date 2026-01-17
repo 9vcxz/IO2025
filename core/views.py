@@ -56,6 +56,9 @@ class VerifyPhotoView(APIView):
         image_b64_req = request.data.get('img_data')
         employee_id = request.data.get('employee_id')
         
+        # tylko wywolanie funkcji do sprawdzenia zeskanowanego zdjecia twarzy
+        # przekaznie id pracownika i zdjecie z frontu w formacie base64
+        # error_msg jest tylko przy bledach przy poprawnej weryfikacji wynosi None
         error_msg, status_code = FaceService.verify_photo(employee_id, image_b64_req)
 
         if error_msg:

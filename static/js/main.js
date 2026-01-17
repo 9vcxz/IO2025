@@ -69,7 +69,7 @@ scanner.addListener("scan", (content, _b64img) => {
     })
     .then(({ status, data }) => {
         console.log("Status: " + data.message);
-        feedback.textContent = data.message;
+        feedback.textContent = data.message || 'cos poszlo mocno nie tak';
 
         if(status===200){
             uid = data.employee_id;
@@ -78,27 +78,7 @@ scanner.addListener("scan", (content, _b64img) => {
             setTimeout(() => {
                 startFaceScan();
             }, 2000);
-
-
-            startFaceScan();
-
-        }else if(status===400){
-            feedback.textContent=data.message;
-            setTimeout(() => {
-                resetScanner();
-            }, 2000);
-        }else if (status===404) {
-            feedback.textContent=data.message;
-            setTimeout(() => {
-                resetScanner();
-            }, 2000);
-        }else if (status===403) {
-            feedback.textContent=data.message;
-            setTimeout(() => {
-                resetScanner();
-            }, 2000);
         }else{
-            feedback.textContent='cos poszlo mocno nie tak'
             setTimeout(() => {
                 resetScanner();
             }, 2000);
@@ -172,90 +152,3 @@ function resetAfterSuccess() {
         resetScanner();
     }, 5000);
 }
-
-// cameras = [];
-// Instascan.Camera.getCameras()
-//     .then((availableCameras) => {
-//         cameras = availableCameras;
-
-//         if (cameras.length === 0) {
-//             alert("no cameras found");
-//             return; 
-//         }
-//         scanner.start(cameras[0])
-//     })
-// .catch((err) => {
-//     console.error("Camera error:", err);
-//     alert("Could not access camera. Please check permissions.");
-// });
-
-// // PHOTO
-// button = document.getElementById("send-pic-button");
-// button.addEventListener("click", sendPhoto); 
-// function sendPhoto() {
-//     console.log("Send pic button clicked");
-//     button.removeEventListener("click", sendPhoto);     // inaczej button klika 2 razy
-
-//     const canvas = document.createElement("canvas");
-//     canvas.setAttribute("width", video.videoWidth);
-//     canvas.setAttribute("height", video.videoHeight);
-
-//     canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-//     const imgData = canvas.toDataURL('image/jpeg');
-
-//     // uid = 9;  // test
-//     if (uid !== 0) {
-//         fetch('/api/verify_photo', {
-//             method: 'POST',
-//             headers: {'Content-Type': 'application/json'},
-//             body: JSON.stringify({
-//                 employee_id: uid,
-//                 img_data: imgData
-//             })
-//         })
-//         .then(response => response.json())
-//         .then(data => {
-//             alert("Status: " + data.message);
-//             uid = 0;
-//         })
-//     } else {
-//         alert("Scan QR code first");
-//     }
-
-//     button.addEventListener("click", sendPhoto); 
-// }
-//////////////////////////////////////////////////////////////////
-// HTML5QRCODESCANNER TEST
-// function onScanSuccess(decodedText, decodedResult) {
-//     html5QrcodeScanner.clear()
-//     // const video = document.querySelector('#video_element');
-//     // const canvas = document.createElement('canvas');
-//     // canvas.getContext('2d').drawImage(video, 0, 0);
-    
-//     console.log(`QR code scanned successfuly: ${decodedText}`);
-
-//     fetch('/api/verify_qr', {
-//         method: 'POST',
-//         headers: {'Content-Type': 'application/json'},
-//         body: JSON.stringify({
-//             qr_code: decodedText
-//         })
-//     })
-//     .then(response => response.json())
-//     .then(data => {
-//         alert("Status: " + data.message);
-//         location.reload();
-//     })
-// }
-
-// let config = {
-//   fps: 10,
-//   qrbox: {width: 300, height: 300},
-//   rememberLastUsedCamera: true,
-//   // Only support camera scan type.
-//   supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
-// };
-
-// let html5QrcodeScanner = new Html5QrcodeScanner(
-//   "reader", config, /* verbose= */ false);
-// html5QrcodeScanner.render(onScanSuccess);
