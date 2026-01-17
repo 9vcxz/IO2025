@@ -4,6 +4,7 @@ from django.db import models
 from django.utils import timezone
 from datetime import timedelta
 from .services.face_services import FaceService
+from django.core.files.base import ContentFile
 
 # Create your models here.
 class Employee(models.Model):
@@ -21,10 +22,14 @@ class Employee(models.Model):
     def get_first_photo(self):
         return self.photos.first()
     
-    def add_photo(self, image_file):
+    def add_photo(self, image_stream):
+
+        filename = f"timezone.now().jpg"
+        content_file = ContentFile(image_stream.read(), name=filename)
+
         return EmployeePhoto.objects.create(
             employee=self,
-            image=image_file
+            image=content_file
         )
 
     def refresh_QR_code(self) -> None:

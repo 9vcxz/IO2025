@@ -69,21 +69,39 @@ scanner.addListener("scan", (content, _b64img) => {
     })
     .then(({ status, data }) => {
         console.log("Status: " + data.message);
+        feedback.textContent = data.message;
+
         if(status===200){
             uid = data.employee_id;
             isqrScanned = true;
-            feedback.textContent='QR zeskanowany pomyslnie';
+
+            setTimeout(() => {
+                startFaceScan();
+            }, 2000);
+
 
             startFaceScan();
 
         }else if(status===400){
-            feedback.textContent='QR kod zle zeskanowany prosze sprobowac ponownie';
+            feedback.textContent=data.message;
+            setTimeout(() => {
+                resetScanner();
+            }, 2000);
         }else if (status===404) {
-            feedback.textContent='brak QR kodu w bazie';
+            feedback.textContent=data.message;
+            setTimeout(() => {
+                resetScanner();
+            }, 2000);
         }else if (status===403) {
-            feedback.textContent='QR kod wygasl';
+            feedback.textContent=data.message;
+            setTimeout(() => {
+                resetScanner();
+            }, 2000);
         }else{
             feedback.textContent='cos poszlo mocno nie tak'
+            setTimeout(() => {
+                resetScanner();
+            }, 2000);
         }
     })
     .catch((err) => {
@@ -121,7 +139,9 @@ function startFaceScan() {
                 resetAfterSuccess();
             } else {
                 feedback.textContent = 'Nie rozpoznano twarzy';
-                resetScanner();
+                setTimeout(() => {
+                    resetScanner();
+                }, 2000);
             }
         });
     }, 2000);
