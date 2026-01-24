@@ -3,8 +3,6 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Employee, Log
-from django.utils import timezone
 from rest_framework.permissions import AllowAny
 
 from .services.face_services import FaceService
@@ -41,12 +39,6 @@ class VerifyQRView(APIView):
             "employee_id": employee.id
         }, status=status.HTTP_200_OK)
 
-
-import base64
-from PIL import Image
-from io import BytesIO
-import face_recognition
-import numpy as np
 
 @method_decorator(csrf_exempt, name='dispatch')
 class VerifyPhotoView(APIView):

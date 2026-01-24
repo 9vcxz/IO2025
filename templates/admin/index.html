@@ -1,0 +1,17 @@
+<!-- templates/admin/index.html -->
+{% extends "admin/index.html" %}
+
+{% block sidebar %}
+    {{ block.super }}
+    <div class="module">
+        <h2>Raporty Systemowe</h2>
+        <ul style="padding: 10px;">
+            <li>
+                <a href="{% url 'admin:export_all_logs' %}" class="button" 
+                   style="background: #417690; color: white; padding: 8px; display: block; text-align: center; border-radius: 4px; text-decoration: none;">
+                    Pobierz wszystkie logi (.txt)
+                </a>
+            </li>
+        </ul>
+    </div>
+{% endblock %}

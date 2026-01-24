@@ -3,10 +3,15 @@
 from django.contrib import admin
 from .models import Employee, EmployeePhoto
 from .services.employee_service import EmployeeQRService
+from .services.log_service import LogExportService
+
+from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.html import format_html
+from django.urls import path
 
 # Register your models here.
+
 
 @admin.action(description="Generate new QR codes and validate them for 30 days")
 def update_qr_codes(modeladmin, request, queryset):
@@ -68,6 +73,26 @@ class EmployeeAdmin(admin.ModelAdmin):
         return "No photo"
     photo_preview.short_description = "Photo Preview"
 
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('export-all-logs/', 
+                 self.admin_site.admin_view(self.export_all_logs_view), 
+                 name='export_all_logs'),
+        ]
+        return custom_urls + urls
+
+    def export_all_logs_view(self, request):
+        """Widok generujący logi dla WSZYSTKICH pracowników"""
+        # Wywołujemy serwis bez przekazywania konkretnego employee
+        content = LogExportService.generate_logs_text()
+        
+        response = HttpResponse(content, content_type='text/plain; charset=utf-8')
+        filename = f"pelny_raport_logow_{timezone.now().strftime('%Y%m%d_%H%M')}.txt"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        return response
+    
     # def qr_code_status(self, obj):
     #     if obj.qr_expires_at and obj.qr_expires_at < timezone.now():
     #         return "Expired"

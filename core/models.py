@@ -82,66 +82,29 @@ class Log(models.Model):
     access_status = models.BooleanField()
     deny_reason = models.CharField(max_length=200, blank=True, null=True)
 
+    def get_full_report(self):
+        date_str = self.event_time.strftime("%d.%m.%Y %H:%M:%S")
+        
+        status_str = "potwierdzenie" if self.access_status else "odmowa"
+
+        report = (
+            f"data zdarzenia: {date_str}\n"
+            f"zezwolenie na wejście: {status_str}"
+        )
+
+        if self.deny_reason:
+            report += f"\nPowód: {self.deny_reason}"
+
+        if self.employee:
+            report += f"\nOsoba: {self.employee}"
+        else:
+            report += "\nOsoba: "
+
+        return report
+
     def __str__(self):
         name = self.employee.last_name if self.employee else "Unknown"
         return f"{self.event_time} - {name}: {self.access_status}"
 
 class EmployeePermission(models.Model):
     pass
-
-
-
-    #     if not self.qr_code:
-    #         self.qr_code = uuid.uuid4()
-    #     if not self.qr_expires_at:
-    #         self.qr_expires_at = timezone.now() + timedelta(days=30)
-    #     if self.qr_code != self.__original_qr_code or not self.qr_image:
-    #          self.generate_and_save_qr()
-
-    #     is_new_photo = False
-    #     if self.pk:
-    #         old_photo = Employee.objects.get(pk=self.pk).photo
-    #         if old_photo != self.photo:
-    #             is_new_photo = True
-    #     else:
-    #         is_new_photo = True
-
-    #     super().save(*args, **kwargs)
-
-    #     if is_new_photo and self.photo:
-    #         try:
-    #             image = face_recognition.load_image_file(self.photo.path)
-    #             encodings = face_recognition.face_encodings(image)
-
-    #             if encodings:
-    #                 self.photo_encoding = encodings[0].tolist()
-    #                 super().save(update_fields=['photo_encoding'])
-    #             else:
-    #                 # Do dopisania później
-    #                 print("nie funguje")
-    #         except Exception as e:
-    #             print(f'Encountered error during photo encoding: {e}')
-
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #     self.__original_qr_code = self.qr_code
-
-    # def generate_and_save_qr(self):
-    #     qr = qrcode.QRCode(
-    #         version=1,
-    #         error_correction=qrcode.constants.ERROR_CORRECT_L,
-    #         box_size=10,
-    #         border=4,
-    #     )
-
-    #     qr.add_data(str(self.qr_code))
-    #     qr.make(fit=True)
-
-    #     img = qr.make_image(fill_color="black", back_color="white").convert("RGB")
-
-    #     buffer = BytesIO()
-    #     img.save(buffer, format="PNG")
-    #     # file_name = f"qr_{self.qr_code}.png"
-
-    #     file_name = f"qr_{unidecode(self.first_name.lower())}_{unidecode(self.last_name.lower())}.png"
-    #     self.qr_image.save(file_name, File(buffer), save=False)
