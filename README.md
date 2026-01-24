@@ -9,6 +9,7 @@ git clone https://github.com/9vcxz/IO2025/
 git checkout testing
 python3 -m venv .venv
 source .venv/bin/activate
+pip install setuptools
 pip install -r requirements.txt
 python3 manage.py makemigrations
 python3 manage.py makemigrations core
