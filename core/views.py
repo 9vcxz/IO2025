@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -7,10 +7,17 @@ from rest_framework.permissions import AllowAny
 
 from .services.face_services import FaceService
 from .services.qr_services import QRCodeService
+from .models import Employee
 
 # Create your views here.
 def scan_site(request):
   return render(request, 'core/scan_site.html')
+
+
+def employee_panel(request, employee_id):
+  """Panel pracownika wyświetlany po pomyślnej weryfikacji"""
+  employee = get_object_or_404(Employee, id=employee_id)
+  return render(request, 'core/employee_panel.html', {'employee': employee})
 
 
 # TEMP

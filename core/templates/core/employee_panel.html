@@ -1,0 +1,115 @@
+{% extends 'layout_employee.html' %}
+
+{% block current_employee %}
+<div class="employee-panel">
+    <h1>Witaj, {{ employee.first_name }} {{ employee.last_name }}!</h1>
+    
+    <div class="employee-info">
+        <div class="info-section">
+            <h2>Informacje pracownika</h2>
+            <p><strong>ID:</strong> {{ employee.id }}</p>
+            <p><strong>QR Expiry Date:</strong> {{ employee.qr_expires_at|date:"d/m/Y H:i" }}</p>
+        </div>
+
+        {% if employee.photos.all %}
+        <div class="info-section">
+            <h2>Zdjęcie profilowe</h2>
+            <div class="employee-photo">
+                <img src="{{ employee.photos.first.image.url }}" alt="Zdjęcie pracownika" width="150">
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="actions">
+        <a href="/scan/" class="btn btn-primary">Powrót do skanowania</a>
+        <a href="/admin/logout/" class="btn btn-secondary">Wyloguj się</a>
+    </div>
+</div>
+
+<style>
+    .employee-panel {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 30px;
+        background: #f5f5f5;
+        border-radius: 10px;
+    }
+
+    .employee-panel h1 {
+        color: #333;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .employee-info {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+
+    .info-section {
+        margin-bottom: 20px;
+    }
+
+    .info-section h2 {
+        color: #555;
+        font-size: 18px;
+        margin-bottom: 10px;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 5px;
+    }
+
+    .info-section p {
+        margin: 8px 0;
+        font-size: 16px;
+    }
+
+    .employee-photo {
+        text-align: center;
+        margin: 15px 0;
+    }
+
+    .employee-photo img {
+        border-radius: 8px;
+        border: 2px solid #ddd;
+        max-width: 100%;
+    }
+
+    .actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #545b62;
+    }
+</style>
+{% endblock %}

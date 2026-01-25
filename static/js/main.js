@@ -1,23 +1,4 @@
-// if (navigator.mediaDevices.getUserMedia) {
-//   navigator.mediaDevices.getUserMedia( {video: true} )
-//   .then(function (stream) {
-//     video.srcObject = stream;
-//     console.log('poprawnie znaleziono kamere');
-//   })
-//   .catch (function (erro){
-//     console.log('Something went wrong');
-//   })
-// } else {
-//   console.log("getUserMedia not supported");
-// }
-
-// let feedback = document.getElementById('scan_feedback')
-// let test = document.getElementById('test-button')///////////////
-// test.addEventListener("click",()=>{
-//     feedback.textContent='test'
-// });
-
-// QR
+// QR Scanner Configuration
 let video = document.querySelector('#video_element');
 let uid = 0;
 let isqrScanned = false;
@@ -27,7 +8,6 @@ let scannerOptions = {
     video: video,
     mirror: false,
     scanPeriod: 5,
-    // captureImage: true,
     refractoryPeriod: 5000
 }
 
@@ -48,7 +28,6 @@ scanner.addListener("scan", (content, _b64img) => {
     if (isqrScanned) return;
 
     console.log(`QR DETECTED: ${content}`);
-    // console.log(`QR DETECTED: ${_b64img}`);          // for logging purposes 
     
     fetch('/api/verify_qr', {
         method: 'POST',
@@ -92,39 +71,53 @@ scanner.addListener("scan", (content, _b64img) => {
 
 function startFaceScan() {
     console.log(`start scanowania twarzy`);
-    setTimeout(() => {
-        let imgData = captureImageFromVideo(); // base64
-        console.log("Długość Base64:", imgData.length);
+    let imgData = captureImageFromVideo(); // base64
+    console.log("Długość Base64:", imgData.length);
 
-        if (imgData.length < 2000) {
-            console.error("Błąd: Przechwycony obraz wydaje się być pusty (czarny).");
-            feedback.textContent = 'Błąd kamery - spróbuj ponownie';
-            resetScanner();
-            return;
-        }
-        scanner.stop();
-
-        fetch('/api/verify_photo', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                img_data: imgData,
-                employee_id: uid
-            })
+    if (imgData.length < 2000) {
+        console.error("Błąd: Przechwycony obraz wydaje się być pusty (czarny).");
+        feedback.textContent = 'Błąd kamery - spróbuj ponownie';
+        resetScanner();
+        return;
+    }
+    
+    console.log("Wysyłanie żądania do /api/verify_photo z uid:", uid);
+    
+    fetch('/api/verify_photo', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            img_data: imgData,
+            employee_id: uid
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                feedback.textContent = 'Poprawnie zeskanowano twarz';
-                resetAfterSuccess();
-            } else {
-                feedback.textContent = 'Nie rozpoznano twarzy';
-                setTimeout(() => {
-                    resetScanner();
-                }, 2000);
-            }
-        });
-    }, 2000);
+    })
+    .then(res => {
+        console.log("Response status:", res.status);
+        return res.json();
+    })
+    .then(data => {
+        console.log("Odpowiedź verify_photo:", data);
+        console.log("uid:", uid);
+        if (data.status === 'success') {
+            feedback.textContent = 'Poprawnie zeskanowano twarz - przekierowanie...';
+            console.log(`Przekierowanie do /employee/${uid}/`);
+            setTimeout(() => {
+                window.location.href = `/employee/${uid}/`;
+            }, 1500);
+        } else {
+            feedback.textContent = 'Nie rozpoznano twarzy';
+            setTimeout(() => {
+                resetScanner();
+            }, 2000);
+        }
+    })
+    .catch(err => {
+        console.error("Błąd przy weryfikacji twarzy:", err);
+        feedback.textContent = 'Błąd podczas weryfikacji twarzy';
+        setTimeout(() => {
+            resetScanner();
+        }, 2000);
+    });
 }
 
 function captureImageFromVideo() {

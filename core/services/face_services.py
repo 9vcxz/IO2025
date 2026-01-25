@@ -61,7 +61,7 @@ class FaceService:
         print(f"typ znanej twarzy z bazy{type(encoded_known_face)},\n" 
               f"typ porownywalnej twarzy {type(encoded_test_face)}")
         
-        if encoded_test_face or encoded_known_face is None:
+        if encoded_test_face is None or encoded_known_face is None:
             return False
         
         results = face_recognition.compare_faces(
@@ -106,15 +106,9 @@ class FaceService:
 
         if not bytes_photo:
             return "Serwerowi nie udało się przetworzyć zdjęcia", 400
-        
-        # do debugowania sprawdza czy twarz sie przeslala
-        bytes_photo.seek(0)
-        img = Image.open(bytes_photo)
-        img.show()
-        bytes_photo.seek(0)
 
         test_encoding = FaceService.encode_face_img(bytes_photo)
-        if not test_encoding:
+        if test_encoding is None:
             return "Serwerowi nie udało się przetworzyć zdjęcia", 400
 
         try:
@@ -147,8 +141,6 @@ class FaceService:
                     break
 
         if match_found:
-            bytes_photo.seek(0)
-            employee.add_photo(bytes_photo)
             Log.objects.create(employee=employee,
             access_status=True)
             return None, 200
