@@ -6,7 +6,7 @@ import logging
 from io import BytesIO
 import base64
 import numpy as np
-
+from django.core.files.base import ContentFile
 from PIL import Image # do debugowania
 
 logger = logging.getLogger(__name__)
@@ -145,8 +145,14 @@ class FaceService:
             access_status=True)
             return None, 200
         else:
+            bytes_photo.seek(0)
+            # Create a Django ContentFile
+            photo_file = ContentFile(bytes_photo.read(), name=f"{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.jpg")
+
             Log.objects.create(employee=employee,
             access_status=False,
-            deny_reason="nie znaleziono pasujacej twarzy w bazie danych")
+            deny_reason="nie znaleziono pasujacej twarzy w bazie danych",
+            image = photo_file)
+            
             return "nie znaleziono pasujacej twarzy w bazie danych", 403
         

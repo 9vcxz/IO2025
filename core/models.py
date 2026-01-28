@@ -84,6 +84,7 @@ class Log(models.Model):
     )
     access_status = models.BooleanField()
     deny_reason = models.CharField(max_length=200, blank=True, null=True)
+    image = models.ImageField(null=True, blank=True, upload_to='error_images/',)
 
     def get_full_report(self):
         date_str = self.event_time.strftime("%d.%m.%Y %H:%M:%S")
