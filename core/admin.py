@@ -53,6 +53,8 @@ class EmployeeAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         is_new = obj.pk is None
         super().save_model(request, obj, form, change)
+        if is_new:
+            EmployeeQRService.setup_initial_qr(obj)
 
     
     actions = [refresh_qr_codes, update_qr_codes, delete_employees]

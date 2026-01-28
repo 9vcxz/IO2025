@@ -1,5 +1,8 @@
 # core/models.py
-
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+import shutil
+import os
 from django.db import models
 from django.utils import timezone
 from datetime import timedelta
@@ -24,7 +27,7 @@ class Employee(models.Model):
     
     def add_photo(self, image_stream):
 
-        filename = f"timezone.now().jpg"
+        filename = f"{timezone.now().strftime('%Y%m%d%H%M%S')}.jpg"
         content_file = ContentFile(image_stream.read(), name=filename)
 
         return EmployeePhoto.objects.create(
@@ -106,5 +109,33 @@ class Log(models.Model):
         name = self.employee.last_name if self.employee else "Unknown"
         return f"{self.event_time} - {name}: {self.access_status}"
 
-class EmployeePermission(models.Model):
-    pass
+@receiver(post_delete, sender=EmployeePhoto)
+def delete_photo_file_on_delete(sender, instance, **kwargs):
+    """Usuwa plik zdjęcia z dysku po usunięciu obiektu EmployeePhoto."""
+    if instance.image:
+        if os.path.isfile(instance.image.path):
+            os.remove(instance.image.path)
+
+@receiver(post_delete, sender=Employee)
+def delete_employee_assets(sender, instance, **kwargs):
+    """
+    1. Usuwa plik kodu QR pracownika.
+    2. Usuwa cały folder ze zdjęciami pracownika.
+    """
+    # 1. Usuwanie obrazu QR kodu
+    if instance.qr_code_image:
+        if os.path.isfile(instance.qr_code_image.path):
+            os.remove(instance.qr_code_image.path)
+
+    # 2. Usuwanie folderu ze zdjęciami (opcjonalne, ale czyści puste foldery)
+    # Wykorzystujemy ścieżkę bazową z FaceService
+    if instance.id:
+        from django.conf import settings
+        from unidecode import unidecode
+        
+        first_name = unidecode(instance.first_name.lower())
+        last_name = unidecode(instance.last_name.lower())
+        folder_path = os.path.join(settings.MEDIA_ROOT, 'employees_photos', f"{instance.id}_{first_name}_{last_name}")
+        
+        if os.path.exists(folder_path):
+            shutil.rmtree(folder_path)
