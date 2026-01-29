@@ -8,7 +8,7 @@
         <div class="info-section">
             <h2>Informacje pracownika</h2>
             <p><strong>ID:</strong> {{ employee.id }}</p>
-            <p><strong>QR Expiry Date:</strong> {{ employee.qr_expires_at|date:"d/m/Y H:i" }}</p>
+            <p><strong>Data przedawnienia kodu QR:</strong> {{ employee.qr_expires_at|date:"d/m/Y H:i" }}</p>
             <p><strong>Status pracownika:</strong>  
                 {% if employee.is_active %}
                     &#9989

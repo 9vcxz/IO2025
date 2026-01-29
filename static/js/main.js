@@ -1,3 +1,6 @@
+const SCAN_TIME = 10000;
+const TIMER = true;
+
 // QR Scanner Configuration
 let video = document.querySelector('#video_element');
 let uid = 0;
@@ -54,9 +57,20 @@ scanner.addListener("scan", (content, _b64img) => {
             uid = data.employee_id;
             isqrScanned = true;
 
+            if (TIMER) {
+                let countdown = SCAN_TIME/1000
+                const countdownInterval = setInterval(() => {
+                    countdown--;
+                    feedback.textContent = `Przygotuj się do skanowania twarzy za ${countdown}s`;
+                    if (countdown <= 0) {
+                        clearInterval(countdownInterval);
+                    }
+                }, 1000);
+            }
+
             setTimeout(() => {
                 startFaceScan();
-            }, 2000);
+            }, SCAN_TIME);                                
         }else{
             setTimeout(() => {
                 resetScanner();
@@ -103,7 +117,7 @@ function startFaceScan() {
             console.log(`Przekierowanie do /employee/${uid}/`);
             setTimeout(() => {
                 window.location.href = `/employee/${uid}/`;
-            }, 1500);
+            }, 1500);                                            
         } else {
             feedback.textContent = 'Nie rozpoznano twarzy';
             setTimeout(() => {
