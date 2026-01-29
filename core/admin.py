@@ -6,7 +6,7 @@ from .services.employee_service import EmployeeQRService
 from .services.log_service import LogExportService
 
 from django.http import HttpResponse
-from django.utils import timezone
+from django.utils import timezone, safestring
 from django.utils.html import format_html
 from django.urls import path
 
@@ -45,8 +45,21 @@ class EmployeePhotoInlineFormSet(BaseInlineFormSet):
 class EmployeePhotoInline(admin.TabularInline):
     model = EmployeePhoto
     extra = 1
-    fields = ['image']
+    fields = ['image', 'photo_preview', 'qr_image_preview']
+    readonly_fields = ['photo_preview', 'qr_image_preview']
     formset = EmployeePhotoInlineFormSet
+
+    def photo_preview(self, obj):
+        if obj.image:
+            return safestring.mark_safe(f'<img src="{obj.image.url}" width="300" />')
+        return ""
+
+    def qr_image_preview(self, obj):
+        pk = obj.pk
+        qr_code_img = Employee.objects.get(pk=pk).qr_code_image
+        if qr_code_img:
+            return safestring.mark_safe(f'<img src="{qr_code_img.url}"  />')
+        return "No QR"
 
 
 @admin.register(Employee)

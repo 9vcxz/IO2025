@@ -9,11 +9,18 @@ from datetime import timedelta
 from .services.face_services import FaceService
 from django.core.files.base import ContentFile
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
+
+
+regex_name_validator = RegexValidator(
+    regex=r'^[A-ZĄĆĘŁŃÓŚŹŻa-ząćęłńóśźż\-\ ]+$',
+    message='Imie i nazwisko nie powinno zawierać cyfr ani znaków specjalnych oprócz myślnika.'
+)
 
 # Create your models here.
 class Employee(models.Model):
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
+    first_name = models.CharField(max_length=100, validators=[regex_name_validator])
+    last_name = models.CharField(max_length=100, validators=[regex_name_validator])
     
     qr_code_str = models.CharField(max_length=255, blank=True, null=True)
     qr_code_image = models.ImageField(upload_to='qr_codes/', blank=True, null=True, verbose_name='QR code image')
@@ -52,6 +59,18 @@ class Employee(models.Model):
     def delete_employee(self):
         self.delete()
 
+    def clean(self):
+        super().clean()
+        if self.first_name:
+            self.first_name.strip().capitalize()
+
+        if self.last_name:
+            import re
+            last_name = self.last_name
+            last_name.strip()
+            self.last_name = re.sub(r"(^|[\s-])([a-z])", lambda m: m.group(1) + m.group(2).upper(), last_name.lower())
+
+
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
@@ -82,7 +101,7 @@ class EmployeePhoto(models.Model):
             
         # aktualizacja zdjęcia w bazie w razie zmiany
         if self.pk:
-            old_photo_instance = EmployeePhoto.objects.get(pk=self.pk)
+            old_photo_instance = EmployeePhoto.objects.get(pk=self.pk).image
             if old_photo_instance != self.image:
                 encoding_array = FaceService.encode_face_img(self.image)
                 if encoding_array is not None:
