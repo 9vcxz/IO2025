@@ -8,6 +8,7 @@ from django.utils import timezone
 from datetime import timedelta
 from .services.face_services import FaceService
 from django.core.files.base import ContentFile
+from django.core.exceptions import ValidationError
 
 # Create your models here.
 class Employee(models.Model):
@@ -26,6 +27,11 @@ class Employee(models.Model):
         return self.photos.first()
     
     def add_photo(self, image_stream):
+
+        image_data = image_stream.read()
+        if not image_data or len(image_data) == 0:
+            raise ValueError("Przesłany strumień zdjęć jest pusty. Nie utworzono wpisu.")
+
 
         filename = f"{timezone.now().strftime('%Y%m%d%H%M%S')}.jpg"
         content_file = ContentFile(image_stream.read(), name=filename)
@@ -49,7 +55,7 @@ class Employee(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
-
+# TODO: później to uporządkować do employee_service
 class EmployeePhoto(models.Model):
     employee = models.ForeignKey(
         Employee, 
@@ -60,13 +66,37 @@ class EmployeePhoto(models.Model):
     encoding = models.JSONField(null=True, blank=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def save(self, *args, **kwargs):
+    def clean(self):
+        # walidacja przed save
+        super().clean()
+        
+        # dodanie zdjęcia do pracownika bez niego
         if self.image and not self.encoding:
             encoding_array = FaceService.encode_face_img(self.image)
             if encoding_array is not None:
                 self.encoding = list(encoding_array)
             else:
-                pass
+                raise ValidationError(
+                    'Nie udało się wykryć twarzy na przekazanym zdjęciu. Wybierz inne zdjęcie.'
+                )
+            
+        # aktualizacja zdjęcia w bazie w razie zmiany
+        if self.pk:
+            old_photo_instance = EmployeePhoto.objects.get(pk=self.pk)
+            if old_photo_instance != self.image:
+                encoding_array = FaceService.encode_face_img(self.image)
+                if encoding_array is not None:
+                    self.encoding = list(encoding_array)
+                    old_photo_path = old_photo_instance.image.path
+                    if os.path.exists(old_photo_path):
+                        os.remove(old_photo_path)
+
+                else:
+                    raise ValidationError(
+                        'Nie udało się wykryć twarzy na przekazanym zdjęciu. Wybierz inne zdjęcie.'
+                    )
+
+    def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -36,6 +36,7 @@ class QRCodeService:
   @staticmethod
   def setup_initial_qr_str(employee):
     qr_str = unidecode(f"ID: {str(employee.id)},Imie: {employee.first_name} Nazwisko: {employee.last_name}")
+    # qr_str = uuid.uuid4()
     return qr_str
 
   @staticmethod

@@ -10,6 +10,8 @@ from django.utils import timezone
 from django.utils.html import format_html
 from django.urls import path
 
+from django.forms.models import BaseInlineFormSet
+from django import forms
 # Register your models here.
 
 
@@ -25,16 +27,27 @@ def refresh_qr_codes(modeladmin, request, queryset):
         employee.refresh_QR_code()
     modeladmin.message_user(request, f"Successfuly refreshed QR codes for {queryset.count()} employees.")
 
-@admin.action(description="removes employee from db")
-def delete_employees(modeladmin, request, queryset):
-    for employee in queryset:
-        employee.delete_employee()
-    modeladmin.message_user(request, f"Successfuly fired {queryset.count()} employees.")
+# @admin.action(description="removes employee from db")
+# def delete_employees(modeladmin, request, queryset):
+#     for employee in queryset:
+#         employee.delete_employee()
+#     modeladmin.message_user(request, f"Successfuly fired {queryset.count()} employees.")
+
+class EmployeePhotoInlineFormSet(BaseInlineFormSet):
+    # zablokowanie możliwości stworzenia entry pracownika bez zdjęcia
+    def clean(self):
+        super().clean()
+        form = self.forms[0]
+        print(form.cleaned_data)
+        if form.cleaned_data.get('image') is None and not form.has_changed():
+                raise forms.ValidationError("Brak zdjęcia. Nowy pracownik musi mieć odpowiadające mu zdjęcie.")
 
 class EmployeePhotoInline(admin.TabularInline):
     model = EmployeePhoto
     extra = 1
     fields = ['image']
+    formset = EmployeePhotoInlineFormSet
+
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
@@ -57,7 +70,9 @@ class EmployeeAdmin(admin.ModelAdmin):
             EmployeeQRService.setup_initial_qr(obj)
 
     
-    actions = [refresh_qr_codes, update_qr_codes, delete_employees]
+    # actions = [refresh_qr_codes, update_qr_codes, delete_employees]
+    actions = [refresh_qr_codes, update_qr_codes]
+
     readonly_fields = ('qr_code_str', 'photo_preview', 'qr_image_preview')
 
     def qr_image_preview(self, obj):
