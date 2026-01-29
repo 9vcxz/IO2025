@@ -147,7 +147,7 @@ class FaceService:
         else:
             bytes_photo.seek(0)
             # Create a Django ContentFile
-            photo_file = ContentFile(bytes_photo.read(), name=f"{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.jpg")
+            photo_file = ContentFile(bytes_photo.read(), name=f"{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg")
 
             Log.objects.create(employee=employee,
             access_status=False,
