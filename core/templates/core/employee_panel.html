@@ -15,7 +15,16 @@
         <div class="info-section">
             <h2>Zdjęcie profilowe</h2>
             <div class="employee-photo">
-                <img src="{{ employee.photos.first.image.url }}" alt="Zdjęcie pracownika" width="150">
+                <img src="{{ employee.photos.first.image.url }}" alt="Zdjęcie pracownika" width="200">
+            </div>
+        </div>
+        {% endif %}
+
+        {% if employee.qr_code_image %}
+        <div class="info-section">
+            <h2>Kod QR</h2>
+            <div class="employee-photo">
+                <img src="{{ employee.qr_code_image.url }}" alt="Kod QR" width="350">
             </div>
         </div>
         {% endif %}
